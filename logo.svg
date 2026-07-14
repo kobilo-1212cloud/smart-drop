@@ -1,0 +1,31 @@
+<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+
+    <circle cx="100" cy="100" r="90"
+            fill="#ffffff"
+            stroke="#198754"
+            stroke-width="6"/>
+
+    <circle cx="100" cy="55" r="18"
+            fill="#FFD43B"/>
+
+    <path d="M100 75
+             C120 105,130 120,100 150
+             C70 120,80 105,100 75"
+          fill="#2196F3"/>
+
+    <rect x="65"
+          y="145"
+          width="70"
+          height="18"
+          fill="#198754"/>
+
+    <text x="100"
+          y="185"
+          text-anchor="middle"
+          font-size="18"
+          fill="#198754"
+          font-family="Arial">
+        Smart Drop
+    </text>
+
+</svg>

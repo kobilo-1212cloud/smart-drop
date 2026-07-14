@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Solar Status</title>
+<link rel="stylesheet"
+href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<div class="main-content">
+
+<h1>☀ Solar System Status</h1>
+
+<div class="card">
+    <h2>Battery Level</h2>
+    <h1 id="battery">0%</h1>
+</div>
+
+<a href="/dashboard">
+⬅ Back to Dashboard
+</a>
+
+</div>
+
+<script>
+
+async function update(){
+
+    const res = await fetch('/api/data');
+    const data = await res.json();
+
+    document.getElementById("battery").innerHTML =
+        Math.round(data.battery) + "%";
+}
+
+setInterval(update,1000);
+update();
+
+</script>
+
+</body>
+</html>

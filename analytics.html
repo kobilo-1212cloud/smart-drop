@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Smart Drop Analytics</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+<div class="main-content">
+
+    <h1>📈 Analytics Dashboard</h1>
+
+    <a href="/dashboard">⬅ Back to Dashboard</a>
+
+    <br><br>
+
+    <div class="cards">
+
+        <div class="card">
+            <h3>Tank Level</h3>
+            <h1 id="tankLevel">0%</h1>
+        </div>
+
+        <div class="card">
+            <h3>Distance</h3>
+            <h1 id="distance">0 cm</h1>
+        </div>
+
+        <div class="card">
+            <h3>Battery</h3>
+            <h1 id="battery">0%</h1>
+        </div>
+
+    </div>
+
+    <div class="card" style="margin-top:20px;">
+        <h2>Water Level History</h2>
+        <canvas id="analyticsChart"></canvas>
+    </div>
+
+</div>
+
+<script>
+
+const ctx = document.getElementById("analyticsChart");
+
+const chart = new Chart(ctx, {
+    type: "line",
+    data: {
+        labels: [],
+        datasets: [{
+            label: "Tank Level %",
+            data: [],
+            borderWidth: 3,
+            tension: 0.4
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: {
+                min: 0,
+                max: 100
+            }
+        }
+    }
+});
+
+async function updateAnalytics() {
+
+    const response = await fetch("/api/data");
+    const data = await response.json();
+
+    document.getElementById("tankLevel").innerHTML =
+        data.tank_level + "%";
+
+    document.getElementById("distance").innerHTML =
+        data.distance + " cm";
+
+    document.getElementById("battery").innerHTML =
+        Math.round(data.battery) + "%";
+
+    const now = new Date().toLocaleTimeString();
+
+    chart.data.labels.push(now);
+    chart.data.datasets[0].data.push(data.tank_level);
+
+    if(chart.data.labels.length > 20){
+        chart.data.labels.shift();
+        chart.data.datasets[0].data.shift();
+    }
+
+    chart.update();
+}
+
+setInterval(updateAnalytics, 2000);
+
+updateAnalytics();
+
+</script>
+
+</body>
+</html>

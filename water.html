@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Water Monitoring</title>
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<div class="main-content">
+
+<h1>🌊 Water Monitoring</h1>
+
+<div class="card">
+    <h3>Current Tank Level</h3>
+    <h1 id="level">0%</h1>
+</div>
+
+<div class="card">
+    <h3>Distance</h3>
+    <h1 id="distance">0 cm</h1>
+</div>
+
+<div class="tank">
+    <div id="waterFill" class="water-fill"></div>
+</div>
+
+<br>
+
+<a href="/dashboard">⬅ Back to Dashboard</a>
+
+</div>
+
+<script>
+
+async function update(){
+
+    const res = await fetch('/api/data');
+    const data = await res.json();
+
+    document.getElementById("level").innerHTML =
+        data.tank_level + "%";
+
+    document.getElementById("distance").innerHTML =
+        data.distance + " cm";
+
+    document.getElementById("waterFill").style.height =
+        data.tank_level + "%";
+}
+
+setInterval(update,1000);
+update();
+
+</script>
+
+</body>
+</html>

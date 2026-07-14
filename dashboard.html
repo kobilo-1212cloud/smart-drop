@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Smart Drop Dashboard</title>
+
+<link rel="stylesheet"
+href="{{ url_for('static', filename='style.css') }}">
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+</head>
+
+<body>
+
+<div class="dashboard-container">
+
+    <!-- SIDEBAR -->
+
+    <div class="sidebar">
+
+        <img src="{{ url_for('static', filename='logo.svg') }}"
+        width="120">
+
+        <h2>Smart Drop</h2>
+
+        <ul>
+
+            <li>
+                <a href="/dashboard">
+                    <i class="fa-solid fa-gauge"></i>
+                    Dashboard
+                </a>
+            </li>
+
+            <li>
+                <a href="/water">
+                    <i class="fa-solid fa-droplet"></i>
+                    Water Monitor
+                </a>
+            </li>
+
+            <li>
+                <a href="/solar">
+                    <i class="fa-solid fa-solar-panel"></i>
+                    Solar Status
+                </a>
+            </li>
+
+            <li>
+                <a href="/analytics">
+                    <i class="fa-solid fa-chart-line"></i>
+                    Analytics
+                </a>
+            </li>
+
+            <li>
+                <a href="/alerts">
+                    <i class="fa-solid fa-bell"></i>
+                    Alerts
+                </a>
+            </li>
+
+        </ul>
+
+    </div>
+
+    <!-- MAIN CONTENT -->
+
+    <div class="main-content">
+
+        <div class="top-bar">
+
+            <h1>☀️ Smart Drop Dashboard</h1>
+
+            <a href="/profile" class="user">
+                👤 Admin
+            </a>
+
+        </div>
+
+        <!-- CARDS -->
+
+        <div class="cards">
+
+            <div class="card">
+
+                <h3>🌊 Water Tank</h3>
+
+                <h1 id="tankLevel">0%</h1>
+
+                <div class="progress">
+                    <div id="tankBar"
+                    class="progress-fill"></div>
+                </div>
+
+            </div>
+
+            <div class="card">
+
+                <h3>📏 Distance</h3>
+
+                <h1 id="distance">0 cm</h1>
+
+            </div>
+
+            <div class="card">
+
+                <h3>🚰 Pump</h3>
+
+                <h1 id="pumpStatus">OFF</h1>
+
+            </div>
+
+            <div class="card">
+
+                <h3>🔋 Battery</h3>
+
+                <h1 id="batteryLevel">0%</h1>
+
+            </div>
+
+            <div class="card">
+    <h3>🌍 Water Saved</h3>
+    <h1>1250 L</h1>
+</div>
+
+        </div>
+
+        <!-- CONTROL PANEL -->
+
+        <div class="control-panel">
+
+            <h2>🚰 Irrigation Controls</h2>
+
+            <button onclick="fetch('/pump/on')">
+                Start Pump
+            </button>
+
+            <button onclick="fetch('/pump/off')">
+                Stop Pump
+            </button>
+
+        </div>
+
+        <!-- STATUS -->
+
+        <div class="status-section">
+
+            <div class="status-card">
+
+                <h2>⚙️ System Mode</h2>
+
+                <h1 id="modeStatus">AUTO</h1>
+
+            </div>
+
+            <div class="status-card">
+
+                <h2>🔔 Live Alerts</h2>
+
+                <ul id="alertList">
+
+                    <li>Loading alerts...</li>
+
+                </ul>
+
+            </div>
+
+        </div>
+
+        <!-- WATER TANK -->
+
+        <div class="tank-section">
+
+            <h2>🌊 Water Tank Visualization</h2>
+
+            <div class="tank">
+
+                <div id="waterFill"
+                class="water-fill"></div>
+
+            </div>
+
+            <h3 id="tankPercent">0% Full</h3>
+
+        </div>
+
+        <!-- CHART -->
+
+        <div class="chart-section">
+
+            <h2>📈 Water Level Analytics</h2>
+
+            <canvas id="waterChart"></canvas>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+const ctx = document.getElementById('waterChart');
+
+const chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: [],
+        datasets: [{
+            label: 'Tank Level (%)',
+            data: [],
+            borderWidth: 3,
+            tension: 0.4,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        animation: true,
+        scales: {
+            y: {
+                min: 0,
+                max: 100
+            }
+        }
+    }
+});
+
+async function updateData() {
+
+    try {
+
+        const response = await fetch('/api/data');
+        const data = await response.json();
+
+        // Cards
+
+        document.getElementById("tankLevel").innerHTML =
+            data.tank_level + "%";
+
+        document.getElementById("distance").innerHTML =
+            data.distance + " cm";
+
+        document.getElementById("pumpStatus").innerHTML =
+            data.pump_status;
+
+        document.getElementById("modeStatus").innerHTML =
+            data.mode;
+
+        document.getElementById("batteryLevel").innerHTML =
+            data.battery.toFixed(1) + "%";
+
+        // Progress bar
+
+        document.getElementById("tankBar").style.width =
+            data.tank_level + "%";
+
+        // Water tank animation
+
+        document.getElementById("waterFill").style.height =
+            data.tank_level + "%";
+
+        document.getElementById("tankPercent").innerHTML =
+            data.tank_level + "% Full";
+
+        // Alerts
+
+        const alertList =
+            document.getElementById("alertList");
+
+        let alerts = [];
+
+        if (data.tank_level < 10) {
+            alerts.push(
+                "🚨 Critical: Refill tank immediately"
+            );
+        }
+        else if (data.tank_level < 30) {
+            alerts.push(
+                "⚠️ Warning: Water level low"
+            );
+        }
+        else if (data.tank_level > 90) {
+            alerts.push(
+                "✅ Tank almost full"
+            );
+        }
+        else {
+            alerts.push(
+                "✅ System operating normally"
+            );
+        }
+
+        if (data.pump_status === "ON") {
+            alerts.push(
+                "🚰 Irrigation pump currently running"
+            );
+        }
+
+        if (data.battery < 25) {
+            alerts.push(
+                "🔋 Battery level low"
+            );
+        }
+
+        alertList.innerHTML = "";
+
+        alerts.forEach(alert => {
+
+            const li =
+                document.createElement("li");
+
+            li.innerHTML = alert;
+
+            alertList.appendChild(li);
+
+        });
+
+        // Chart
+
+        const now =
+            new Date().toLocaleTimeString();
+
+        chart.data.labels.push(now);
+
+        chart.data.datasets[0].data.push(
+            data.tank_level
+        );
+
+        if (chart.data.labels.length > 30) {
+
+            chart.data.labels.shift();
+
+            chart.data.datasets[0].data.shift();
+
+        }
+
+        chart.update();
+
+    }
+
+    catch(error) {
+
+        console.log(
+            "Dashboard Error:",
+            error
+        );
+
+    }
+}
+
+setInterval(updateData, 1000);
+
+updateData();
+
+</script>
+
+</body>
+</html>
